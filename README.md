@@ -1,5 +1,5 @@
 # :bagel: Dough
-
+Private Version of Dough.
 <hr />
 <p align="center">
     <a href="https://github.com/baked-libs/dough/actions">
@@ -44,7 +44,7 @@ repositories {
 }
 
 dependencies {
-	implementation 'io.github.baked-libs:dough-api:[DOUGH VERSION]'
+	implementation 'com.github.GAME-CLI-SRV-DEV:dough-api:[DOUGH VERSION]'
 }
 ```
 
