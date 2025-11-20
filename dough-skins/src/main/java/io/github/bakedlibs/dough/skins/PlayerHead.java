@@ -23,7 +23,7 @@ public final class PlayerHead {
     private static final PlayerHeadAdapter adapter = PlayerHeadAdapter.get();
 
     private PlayerHead() {}
-
+    
     /**
      * This Method will simply return the Head of the specified Player
      * 
@@ -34,7 +34,6 @@ public final class PlayerHead {
      */
     public static @Nonnull ItemStack getItemStack(@Nonnull OfflinePlayer player) {
         Validate.notNull(player, "The player can not be null!");
-
         return getItemStack(meta -> meta.setOwningPlayer(player));
     }
 
@@ -51,6 +50,7 @@ public final class PlayerHead {
 
         return getItemStack(meta -> {
             try {
+                // CustomGameProfile.apply handles SkullMeta
                 skin.getProfile().apply(meta);
             } catch (NoSuchFieldException | IllegalAccessException | UnknownServerVersionException e) {
                 e.printStackTrace();
@@ -73,17 +73,18 @@ public final class PlayerHead {
         }
 
         Material material = block.getType();
-
         if (material != Material.PLAYER_HEAD && material != Material.PLAYER_WALL_HEAD) {
             throw new IllegalArgumentException("Cannot update a head texture. Expected a Player Head, received: " + material);
         }
 
         try {
-            GameProfile profile = skin.getProfile();
+            // unwrap the underlying GameProfile from CustomGameProfile
+            CustomGameProfile custom = skin.getProfile();
+            GameProfile profile = custom.getHandle();
             adapter.setGameProfile(block, profile, sendBlockUpdate);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
     }
-
 }
+
