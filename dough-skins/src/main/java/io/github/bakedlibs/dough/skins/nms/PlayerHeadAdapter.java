@@ -9,7 +9,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import io.papermc.lib.PaperLib;
 import org.bukkit.block.Block;
 
-import com.mojang.authlib.GameProfile;
+import io.github.bakedlibs.dough.skins.authlib.GameProfile;
 
 import io.github.bakedlibs.dough.common.DoughLogger;
 import io.github.bakedlibs.dough.versions.MinecraftVersion;
