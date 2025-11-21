@@ -60,7 +60,7 @@
                     <!-- Original package -->
                     <pattern>com.mojang.authlib</pattern>
                     <!-- Relocated package inside your plugin -->
-                    <shadedPattern>io.github.bakedlibs.dough.libs.authlib</shadedPattern>
+                    <shadedPattern>io.github.bakedlibs.dough.skins.authlib</shadedPattern>
                   </relocation>
                 </relocations>
               </configuration>
