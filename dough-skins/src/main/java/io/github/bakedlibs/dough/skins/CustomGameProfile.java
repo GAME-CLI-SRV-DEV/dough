@@ -37,16 +37,14 @@ public final class CustomGameProfile {
         this.skinUrl = url != null ? url : deriveUrlFromTexture(this.texture);
 
         if (this.texture != null) {
-            PropertyMap props = delegate.properties(); // Authlib 7.x accessor
-            props.put(PROPERTY_KEY, new Property(PROPERTY_KEY, this.texture));
+            ensureMutablePropertiesAndPut(delegate, PROPERTY_KEY, new Property(PROPERTY_KEY, this.texture));
         }
     }
 
     public void apply(@Nonnull SkullMeta meta)
             throws NoSuchFieldException, IllegalAccessException, UnknownServerVersionException {
-        if (this.texture == null && this.skinUrl == null) {
-            return; // prevent Steve fallback
-        }
+        // Prevent Steve fallback
+        if (this.texture == null && this.skinUrl == null) return;
 
         if (MinecraftVersion.get().isAtLeast(MinecraftVersion.parse("1.20"))) {
             if (this.skinUrl != null) {
@@ -57,6 +55,7 @@ public final class CustomGameProfile {
                 meta.setOwnerProfile(playerProfile);
                 return;
             }
+            // If only base64 exists, fall through to reflection path
         }
 
         // Reflection path for older versions or base64-only case
@@ -66,13 +65,9 @@ public final class CustomGameProfile {
     }
 
     @Nullable
-    public String getBase64Texture() {
-        return this.texture;
-    }
+    public String getBase64Texture() { return this.texture; }
 
-    public GameProfile getHandle() {
-        return this.delegate;
-    }
+    public GameProfile getHandle() { return this.delegate; }
 
     // --- helpers ---
 
@@ -103,5 +98,38 @@ public final class CustomGameProfile {
         if (end == -1) return null;
         String candidate = decodedJson.substring(start, end);
         return candidate.startsWith("http") ? candidate : null;
+    }
+
+    /**
+     * Ensures the GameProfile has a mutable PropertyMap, then inserts the property.
+     * Handles Authlib 7.0.61 where properties() may be immutable.
+     */
+    private static void ensureMutablePropertiesAndPut(GameProfile profile, String key, Property property) {
+        PropertyMap props = profile.properties();
+        try {
+            props.put(key, property);
+        } catch (UnsupportedOperationException immutable) {
+            // Replace with a fresh mutable PropertyMap and reinsert existing entries safely
+            PropertyMap mutable = new PropertyMap();
+            // Copy existing entries if any (best-effort)
+            try {
+                for (String k : props.keySet()) {
+                    for (Property p : props.get(k)) {
+                        mutable.put(k, p);
+                    }
+                }
+            } catch (Exception ignored) {
+                // If iteration also fails, proceed with empty mutable map
+            }
+            // Set the mutable map into the GameProfile
+            try {
+                ReflectionUtils.setFieldValue(profile, "properties", mutable);
+            } catch (ReflectiveOperationException e) {
+                // If we cannot replace, bail to avoid repeated exceptions
+                return;
+            }
+            // Now insert our property
+            mutable.put(key, property);
+        }
     }
 }
