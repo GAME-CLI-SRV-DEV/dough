@@ -9,8 +9,8 @@ import javax.annotation.Nullable;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
+import io.github.bakedlibs.dough.skins.GameProfile;
+import io.github.bakedlibs.dough.skins.properties.Property;
 
 import io.github.bakedlibs.dough.reflection.ReflectionUtils;
 import io.github.bakedlibs.dough.versions.MinecraftVersion;
