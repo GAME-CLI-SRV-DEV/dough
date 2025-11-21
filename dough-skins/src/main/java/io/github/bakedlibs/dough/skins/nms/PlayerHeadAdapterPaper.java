@@ -2,8 +2,8 @@ package io.github.bakedlibs.dough.skins.nms;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
+import io.github.bakedlibs.dough.skins.authlib.GameProfile;
+import io.github.bakedlibs.dough.skins.authlib.properties.Property;
 import io.github.bakedlibs.dough.reflection.ReflectionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
