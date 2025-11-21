@@ -9,7 +9,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.bukkit.block.Block;
 
-import com.mojang.authlib.GameProfile;
+import io.github.bakedlibs.dough.skins.authlib.GameProfile;
 
 import io.github.bakedlibs.dough.reflection.ReflectionUtils;
 import io.github.bakedlibs.dough.versions.UnknownServerVersionException;
