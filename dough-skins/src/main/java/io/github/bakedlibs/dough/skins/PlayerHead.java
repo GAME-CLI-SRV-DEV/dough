@@ -13,7 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import com.mojang.authlib.GameProfile;
+import io.github.bakedlibs.dough.skins.authlib.GameProfile;
 
 import io.github.bakedlibs.dough.skins.nms.PlayerHeadAdapter;
 import io.github.bakedlibs.dough.versions.UnknownServerVersionException;
