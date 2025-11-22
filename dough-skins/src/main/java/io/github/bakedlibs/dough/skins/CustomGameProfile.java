@@ -10,8 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 
 import io.github.bakedlibs.dough.reflection.ReflectionUtils;
 import io.github.bakedlibs.dough.versions.MinecraftVersion;
@@ -22,21 +20,16 @@ import org.bukkit.profile.PlayerTextures;
 public final class CustomGameProfile {
 
     private static final String PLAYER_NAME = "CS-CoreLib";
-    private static final String PROPERTY_KEY = "textures";
 
     private final GameProfile delegate;
     private final URL skinUrl;
-    private final String texture;
+    private final String texture; // base64 texture string
 
     public CustomGameProfile(@Nonnull UUID uuid, @Nullable String texture, @Nonnull URL url) {
         this.delegate = new GameProfile(uuid, PLAYER_NAME);
         this.skinUrl = url;
         this.texture = texture;
-
-        if (texture != null) {
-            PropertyMap properties = delegate.properties();
-            properties.put(PROPERTY_KEY, new Property(PROPERTY_KEY, texture));
-        }
+        // ⚠️ Do not mutate delegate.properties() on 1.21.9+ (immutable)
     }
 
     public GameProfile getDelegate() {
@@ -51,23 +44,36 @@ public final class CustomGameProfile {
         return delegate.name(); // new API
     }
 
-    public PropertyMap getProperties() {
-        return delegate.properties(); // new API
-    }
-
     @Nullable
     public String getBase64Texture() {
         return this.texture;
     }
 
-    public void apply(@Nonnull SkullMeta meta) throws NoSuchFieldException, IllegalAccessException, UnknownServerVersionException {
+    public URL getSkinUrl() {
+        return this.skinUrl;
+    }
+
+    public void apply(@Nonnull SkullMeta meta)
+            throws NoSuchFieldException, IllegalAccessException, UnknownServerVersionException {
+
         if (MinecraftVersion.get().isAtLeast(MinecraftVersion.parse("1.20"))) {
             PlayerProfile playerProfile = Bukkit.createPlayerProfile(this.getId(), PLAYER_NAME);
             PlayerTextures playerTextures = playerProfile.getTextures();
-            playerTextures.setSkin(this.skinUrl);
+
+            // Prefer URL if available
+            if (this.skinUrl != null) {
+                playerTextures.setSkin(this.skinUrl);
+            }
+
+            // Some forks of Paper also support setting base64 directly:
+            // if (this.texture != null) {
+            //     playerTextures.setSkin(this.texture);
+            // }
+
             playerProfile.setTextures(playerTextures);
             meta.setOwnerProfile(playerProfile);
         } else {
+            // Legacy fallback for <1.20
             ReflectionUtils.setFieldValue(meta, "profile", this.delegate);
             meta.setOwningPlayer(meta.getOwningPlayer());
             ReflectionUtils.setFieldValue(meta, "profile", this.delegate);
