@@ -79,7 +79,7 @@ public final class PlayerHead {
         }
 
         try {
-            GameProfile profile = skin.getProfile();
+            GameProfile profile = skin.getProfile().getDelegate();
             adapter.setGameProfile(block, profile, sendBlockUpdate);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();

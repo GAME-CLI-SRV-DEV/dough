@@ -11,6 +11,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 
 import io.github.bakedlibs.dough.reflection.ReflectionUtils;
 import io.github.bakedlibs.dough.versions.MinecraftVersion;
@@ -18,34 +19,48 @@ import io.github.bakedlibs.dough.versions.UnknownServerVersionException;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
-public final class CustomGameProfile extends GameProfile {
+public final class CustomGameProfile {
 
-    /**
-     * The player name for this profile.
-     * "CS-CoreLib" for historical reasons and backwards compatibility.
-     */
     private static final String PLAYER_NAME = "CS-CoreLib";
-
-    /**
-     * The skin's property key.
-     */
     private static final String PROPERTY_KEY = "textures";
 
+    private final GameProfile delegate;
     private final URL skinUrl;
     private final String texture;
 
-    CustomGameProfile(@Nonnull UUID uuid, @Nullable String texture, @Nonnull URL url) {
-        super(uuid, PLAYER_NAME);
+    public CustomGameProfile(@Nonnull UUID uuid, @Nullable String texture, @Nonnull URL url) {
+        this.delegate = new GameProfile(uuid, PLAYER_NAME);
         this.skinUrl = url;
         this.texture = texture;
 
         if (texture != null) {
-            getProperties().put(PROPERTY_KEY, new Property(PROPERTY_KEY, texture));
+            PropertyMap properties = delegate.properties();
+            properties.put(PROPERTY_KEY, new Property(PROPERTY_KEY, texture));
         }
     }
 
-    void apply(@Nonnull SkullMeta meta) throws NoSuchFieldException, IllegalAccessException, UnknownServerVersionException {
-        // setOwnerProfile was added in 1.18, but getOwningPlayer throws a NullPointerException since 1.20.2
+    public GameProfile getDelegate() {
+        return delegate;
+    }
+
+    public UUID getId() {
+        return delegate.id(); // new API
+    }
+
+    public String getName() {
+        return delegate.name(); // new API
+    }
+
+    public PropertyMap getProperties() {
+        return delegate.properties(); // new API
+    }
+
+    @Nullable
+    public String getBase64Texture() {
+        return this.texture;
+    }
+
+    public void apply(@Nonnull SkullMeta meta) throws NoSuchFieldException, IllegalAccessException, UnknownServerVersionException {
         if (MinecraftVersion.get().isAtLeast(MinecraftVersion.parse("1.20"))) {
             PlayerProfile playerProfile = Bukkit.createPlayerProfile(this.getId(), PLAYER_NAME);
             PlayerTextures playerTextures = playerProfile.getTextures();
@@ -53,24 +68,9 @@ public final class CustomGameProfile extends GameProfile {
             playerProfile.setTextures(playerTextures);
             meta.setOwnerProfile(playerProfile);
         } else {
-            // Forces SkullMeta to properly deserialize and serialize the profile
-            ReflectionUtils.setFieldValue(meta, "profile", this);
-
+            ReflectionUtils.setFieldValue(meta, "profile", this.delegate);
             meta.setOwningPlayer(meta.getOwningPlayer());
-
-            // Now override the texture again
-            ReflectionUtils.setFieldValue(meta, "profile", this);
+            ReflectionUtils.setFieldValue(meta, "profile", this.delegate);
         }
-
-    }
-
-    /**
-     * Get the base64 encoded texture from the underline GameProfile.
-     *
-     * @return the base64 encoded texture.
-     */
-    @Nullable
-    public String getBase64Texture() {
-        return this.texture;
     }
 }
