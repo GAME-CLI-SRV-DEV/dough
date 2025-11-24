@@ -2,13 +2,11 @@ package io.github.bakedlibs.dough.skins;
 
 import java.net.URL;
 import java.util.UUID;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.meta.SkullMeta;
-
 import com.mojang.authlib.GameProfile;
 
 import io.github.bakedlibs.dough.reflection.ReflectionUtils;
@@ -29,7 +27,6 @@ public final class CustomGameProfile {
         this.delegate = new GameProfile(uuid, PLAYER_NAME);
         this.skinUrl = url;
         this.texture = texture;
-        // ⚠️ Do not mutate delegate.properties() on 1.21.9+ (immutable)
     }
 
     public GameProfile getDelegate() {
@@ -37,11 +34,11 @@ public final class CustomGameProfile {
     }
 
     public UUID getId() {
-        return delegate.id(); // new API
+        return delegate.id();
     }
 
     public String getName() {
-        return delegate.name(); // new API
+        return delegate.name();
     }
 
     @Nullable
@@ -60,22 +57,17 @@ public final class CustomGameProfile {
             PlayerProfile playerProfile = Bukkit.createPlayerProfile(this.getId(), PLAYER_NAME);
             PlayerTextures playerTextures = playerProfile.getTextures();
 
-            // Prefer URL if available
-            if (this.skinUrl != null) {
+            // Prefer base64 if available, fallback to URL
+            if (this.texture != null) {
+                playerTextures.setSkin(this.texture);
+            } else if (this.skinUrl != null) {
                 playerTextures.setSkin(this.skinUrl);
             }
-
-            // Some forks of Paper also support setting base64 directly:
-            // if (this.texture != null) {
-            //     playerTextures.setSkin(this.texture);
-            // }
 
             playerProfile.setTextures(playerTextures);
             meta.setOwnerProfile(playerProfile);
         } else {
             // Legacy fallback for <1.20
-            ReflectionUtils.setFieldValue(meta, "profile", this.delegate);
-            meta.setOwningPlayer(meta.getOwningPlayer());
             ReflectionUtils.setFieldValue(meta, "profile", this.delegate);
         }
     }
