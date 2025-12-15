@@ -18,18 +18,22 @@ import com.mojang.authlib.GameProfile;
 import io.github.bakedlibs.dough.skins.nms.PlayerHeadAdapter;
 import io.github.bakedlibs.dough.versions.UnknownServerVersionException;
 
+/**
+ * Local override that cooperates with the updated {@link CustomGameProfile}.
+ */
 public final class PlayerHead {
 
-    private static final PlayerHeadAdapter adapter = PlayerHeadAdapter.get();
+    // Adapter resolution is disabled on 1.21.10 (NMS signatures changed); block skin updates no-op.
+    private static final PlayerHeadAdapter adapter = resolveAdapter();
 
     private PlayerHead() {}
 
     /**
      * This Method will simply return the Head of the specified Player
-     * 
+     *
      * @param player
      *            The Owner of your Head
-     * 
+     *
      * @return A new Head Item for the specified Player
      */
     public static @Nonnull ItemStack getItemStack(@Nonnull OfflinePlayer player) {
@@ -40,10 +44,10 @@ public final class PlayerHead {
 
     /**
      * This Method will simply return the Head of the specified Player
-     * 
+     *
      * @param skin
      *            The skin of the head you want.
-     * 
+     *
      * @return A new Head Item for the specified Player
      */
     public static @Nonnull ItemStack getItemStack(@Nonnull PlayerSkin skin) {
@@ -79,11 +83,16 @@ public final class PlayerHead {
         }
 
         try {
-            GameProfile profile = skin.getProfile().getDelegate();
+            GameProfile profile = skin.getProfile().asGameProfile();
             adapter.setGameProfile(block, profile, sendBlockUpdate);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
+    }
+
+    private static PlayerHeadAdapter resolveAdapter() {
+        // Avoid hitting NMS reflection that no longer matches 1.21.10; fall back to item-only support.
+        return null;
     }
 
 }
