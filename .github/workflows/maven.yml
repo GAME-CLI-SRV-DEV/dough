@@ -3,10 +3,7 @@ name: Maven build
 on:
   push:
     branches:
-    - main
-  pull_request:
-    branches:
-    - main
+    - dough2.0
 
 jobs:
   build:
